@@ -1,0 +1,45 @@
+{
+    "name": "elliptical-browser",
+    "description": "Browser Implementation of Node Express style apps",
+    "version": "1.0.0",
+    "author": "S. Francis",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tachyon1337/elliptical-browser.git"
+    },
+    "dependencies":{
+        "elliptical-utils":"git+https://github.com/tachyon1337/elliptical-utils.git",
+        "elliptical-dustjs":"git+https://github.com/tachyon1337/elliptical-dustjs.git",
+        "elliptical-mvc":"git+https://github.com/tachyon1337/elliptical-mvc.git",
+        "elliptical-event":"git+https://github.com/tachyon1337/elliptical-event.git",
+        "elliptical-url":"git+https://github.com/tachyon1337/elliptical-url.git",
+        "elliptical-crypto":"git+https://github.com/tachyon1337/elliptical-crypto.git",
+        "elliptical-http":"git+https://github.com/tachyon1337/elliptical-http.git",
+        "elliptical-document":"git+https://github.com/tachyon1337/elliptical-document.git",
+        "elliptical-router":"git+https://github.com/tachyon1337/elliptical-router.git",
+        "elliptical-middleware":"git+https://github.com/tachyon1337/elliptical-middleware.git",
+        "elliptical-providers":"git+https://github.com/tachyon1337/elliptical-providers.git",
+        "elliptical-services":"git+https://github.com/tachyon1337/elliptical-services.git",
+        "elliptical-delegate":"git+https://github.com/tachyon1337/elliptical-delegate.git",
+        "elliptical-observer":"git+https://github.com/tachyon1337/elliptical-observe.git",
+        "elliptical-nodebind":"git+https://github.com/tachyon1337/elliptical-nodebind.git",
+        "elliptical-platform":"git+https://github.com/tachyon1337/elliptical-platform.git",
+        "elliptical-scope":"git+https://github.com/tachyon1337/elliptical-scope.git",
+        "elliptical-cache":"git+https://github.com/tachyon1337/elliptical-cache.git",
+        "elliptical-template":"git+https://github.com/tachyon1337/elliptical-template.git",
+        "elliptical-pubsub":"git+https://github.com/tachyon1337/elliptical-pubsub.git",
+        "elliptical-controller":"git+https://github.com/tachyon1337/elliptical-controller.git",
+        "elliptical-form":"git+https://github.com/tachyon1337/elliptical-form.git",
+        "elliptical-elements":"git+https://github.com/tachyon1337/elliptical-elements.git"
+    },
+    "devDependencies": {
+        "gulp": "^3.6.0",
+        "gulp-util": "^2.2.14",
+        "gulp-concat": "^2.2.0",
+        "gulp-tap": "^0.1.1",
+        "fs-extra": "^0.8.1",
+        "gulp-uglify": "^0.2.1",
+        "merge-stream": "^0.1.5"
+    }
+}
