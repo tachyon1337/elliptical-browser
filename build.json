@@ -2,7 +2,7 @@
 
     "node_modules/elliptical-utils/dist/elliptical-utils.js",
     "node_modules/elliptical-dustjs/dist/elliptical-dustjs.js",
-    "node_modules/elliptical-mvc/dist/async.js",
+    "node_modules/elliptical-mvc/node_modules/async/lib/async.js",
     "node_modules/elliptical-mvc/dist/elliptical-mvc.js",
     "node_modules/elliptical-event/dist/elliptical-event.js",
     "node_modules/elliptical-url/dist/elliptical-url.js",
