@@ -1,3 +1,608 @@
+/* monkey patch support for Function.name(IE) */
+(function(){
+    if (Function.prototype.name === undefined && Object.defineProperty !== undefined) {
+        Object.defineProperty(Function.prototype, 'name', {
+            get: function() {
+                var funcNameRegex = /function\s([^(]{1,})\(/;
+                var results = (funcNameRegex).exec((this).toString());
+                return (results && results.length > 1) ? results[1].trim() : "";
+            },
+            set: function(value) {}
+        });
+    }
+})();
+
+
+
+
+(function (root, factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        //commonjs
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else {
+        // Browser globals (root is window)
+        root.elliptical.delegate=root.elliptical.delegate || {};
+        root.elliptical.delegate.request =factory();
+        root.returnExports =root.elliptical.delegate.request;
+    }
+}(this, function () {
+
+    //on touch devices, listen for both touchstart and click events for reliable capture
+    var EVENT = ('ontouchend' in document) ? 'touchstart tap click' : 'click';
+    var REQUEST_EVENT='OnDocumentRequest';
+    //data-route attr excluded from delegated capture
+    var SELECTOR='a:not([data-route])';
+    var DOCUMENT=$(document);
+
+    return function request(){
+
+        DOCUMENT.on(EVENT, SELECTOR, onRequest);
+
+        function onRequest(event) {
+            var target = $(event.currentTarget);
+            var href = target.attr('href');
+            if (href !== undefined && href !== '#') {
+                var propagation = target.attr('data-propagation');
+                if (propagation) event.stopPropagation();
+                event.preventDefault();
+
+                //create data object
+                var data = {
+                    method: 'get',
+                    href: href
+                };
+
+                /* query attributes and attach to the data objects
+                 *
+                 */
+                $.each(this.attributes, function (i, att) {
+                    data[att.name.toCamelCase()] = att.value;
+                });
+                data.route = href;
+                //trigger event
+                DOCUMENT.trigger(REQUEST_EVENT, data);
+            }
+        }
+
+    };
+
+}));
+
+(function (root, factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        //commonjs
+        module.exports = factory(require('elliptical-document'));
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['elliptical-document'], factory);
+    } else {
+        // Browser globals (root is window)
+
+        root.elliptical.delegate=root.elliptical.delegate || {};
+        root.elliptical.delegate.submit=factory($);
+        root.returnExports =root.elliptical.delegate.submit;
+    }
+}(this, function ($) {
+
+    var EVENT='submit';
+    var SELECTOR='form[role="form"]';
+    var REQUEST_EVENT='OnDocumentRequest';
+    var SUBMIT_EVENT='OnDocumentSubmit';
+    var DOCUMENT=$(document);
+
+    return function submit(history){
+        if(history===undefined) history=false;
+
+        //form must have role attribute to be captured
+        DOCUMENT.on(EVENT, SELECTOR, onSubmit);
+
+        function onSubmit(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            var body = $(event.currentTarget).document();
+
+            //create data object
+            var data = {
+                route: this.action,
+                body: body,
+                method: $(this).attr('method'),
+                element: this
+            };
+
+            if (history) DOCUMENT.trigger(REQUEST_EVENT, data);
+            else DOCUMENT.trigger(SUBMIT_EVENT, data);
+        }
+
+    };
+
+}));
+
+
+(function (root, factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        //commonjs
+        module.exports = factory(require('elliptical-utils'),require('elliptical-class'),require('elliptical-location'),require('elliptical-soa'),
+            require('elliptical-utils'));
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['elliptical-utils','elliptical-class','elliptical-location','elliptical-soa'], factory);
+    } else {
+        //browser
+
+        root.elliptical.Request=factory(root.elliptical.utils,root.elliptical.Class,root.elliptical,root.elliptical);
+        root.returnExports = root.elliptical.Request;
+    }
+}(this, function (utils,Class,location,soa) {
+    var Location=location.Location;
+    var url=location.url;
+    var $Cookie=soa.$Cookie;
+    var $Session=soa.$Session;
+
+    var Request;
+    Request = Class.extend({}, {
+        /**
+         * @constructs
+         */
+        init: function () {
+
+            this.params = {};
+            this.query = {};
+            this.body = {};
+            this.route = {};
+            this.files = {};
+
+
+            Object.defineProperties(this, {
+                'path': {
+                    get: function () {
+
+                        return Location.path;
+                    },
+                    configurable: false
+                },
+
+                'url': {
+                    get: function () {
+
+                        return Location.href;
+                    },
+                    configurable: false
+                },
+
+                'protocol': {
+                    get: function () {
+                        var protocol = Location.protocol;
+                        protocol = protocol.replace(':', '');
+                        return protocol;
+                    },
+                    configurable: false
+                },
+
+                'get': {
+                    get: function (field) {
+                        console.log('warning: "get" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'accepted': {
+                    get: function () {
+                        console.log('warning: "accepted" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'accepts': {
+                    get: function () {
+                        console.log('warning: "accepts" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'is': {
+                    get: function () {
+                        console.log('warning: "is" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'xhr': {
+                    get: function () {
+                        return true;
+                    },
+                    configurable: false
+                },
+
+                'acceptsLanguage': {
+                    get: function (lang) {
+                        console.log('warning: "acceptsLanguage" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'acceptsCharset': {
+                    get: function (charset) {
+                        console.log('warning: "acceptsLanguage" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'acceptsCharsets': {
+                    get: function () {
+
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'acceptedLanguages': {
+                    get: function () {
+
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'originalUrl': {
+                    get: function () {
+
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'subdomains': {
+                    get: function () {
+
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'secure': {
+                    get: function () {
+
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'stale': {
+                    get: function () {
+                        console.log('warning: "stale" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'fresh': {
+                    get: function () {
+                        console.log('warning: "fresh" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'host': {
+                    get: function () {
+                        return window.location.hostname;
+
+                    },
+                    configurable: false
+                },
+
+                'ip': {
+                    get: function () {
+
+
+                    },
+                    configurable: false
+                },
+
+                'ips': {
+                    get: function () {
+                        console.log('warning: "ips" not implemented on the browser.');
+                        return false;
+                    },
+                    configurable: false
+                },
+
+                'signedCookies': {
+                    get: function () {
+
+                        return {};
+                    },
+                    configurable: false
+                }
+            });
+            this.session = {};
+            for (var i = 0; i < $Session.count; i++) {
+                var k = $Session.key(i);
+                this.session[k] = $Session.get(k);
+            }
+            this.cookies = {};
+            for (var j = 0 ; i < $Cookie.count; j++) {
+                var k1=$Cookie.key(j);
+                this.cookies[k1] = $Cookie.get(k1);
+            }
+            this._parsedUrl = {};
+            this._parsedUrl.pathname = Location.path;
+            this._parsedUrl.virtualize = function (u) {
+                var hashTag = window.elliptical.$hashTag;
+                if (hashTag) u = url.hashTagFormat(url);
+                u = url.pathComponent(u);
+                return u;
+            };
+            this.header = function (key) {
+                switch (key) {
+                    case 'Referer':
+                        return document.referrer;
+                        break;
+                }
+            };
+        }
+    });
+
+    return Request;
+
+}));
+
+
+
+(function (root, factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        //commonjs
+        module.exports = factory(require('elliptical-utils'),require('elliptical-class'),require('elliptical-location'),require('elliptical-soa'));
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['elliptical-utils','elliptical-class','elliptical-location','elliptical-soa'], factory);
+    } else {
+        //browser
+        root.elliptical.Response=factory(root.elliptical.utils,root.elliptical.Class,root.elliptical,root.elliptical);
+        root.returnExports = root.elliptical.Response;
+    }
+}(this, function (utils,Class,location,soa) {
+    var Location=location.Location;
+    var $Cookie=soa.$Cookie;
+    var $Session=soa.$Session;
+
+    var Response;
+    Response = Class.extend({
+        req: {}
+
+
+    }, {
+        /**
+         * @constructs
+         * @param req
+         */
+        init: function (req) {
+            this.req = req;
+            this.charset = {};
+            this.context = {};
+            this.transition = {};
+            this.locals = {};
+            this.status = function (value) {
+
+            };
+            this.set = function (field, value) {
+
+            };
+            this.get = function (field) {
+
+            };
+            this.cookie = function (name, value, options) {
+                $Cookie.set(name,value,options);
+            };
+            this.clearCookie = function (name, options) {
+                $Cookie.delete(name);
+            };
+
+            this.redirect = function (status, url) {
+                if (typeof url === 'undefined') {
+                    url = status;
+                }
+                url = decodeURIComponent(url);
+                Location.redirect(url);
+
+            };
+
+            this.session=function(name,value){
+                $Session.set(name,value);
+            };
+
+            this.location = function (path) {
+
+            };
+            this.send = function (status, body) {
+
+            };
+            this.json = function (status, body) {
+
+            };
+            this.jsonp = function (status, body) {
+
+            };
+            this.type = function (type) {
+
+            };
+            this.format = function (obj) {
+
+            };
+            this.attachment = function (filename) {
+
+            };
+            this.sendfile = function (path, options, fn) {
+
+            };
+            this.download = function (path, options, fn) {
+
+            };
+            this.links = function (links) {
+
+            };
+
+        },
+
+        /**
+         @param {object} context
+         @param {string} template
+         @param {object} params - props: append,selector,transition
+         @param {function} callback
+         */
+        render: function (context,template,params, callback) {
+            // support 0-4 args
+            var req = this.req;
+            var template_ = undefined, context_ = undefined, transition_ = undefined,params_=null, callback_ = null;
+            var length = arguments.length;
+
+            ///length==0
+            if(length===0){
+                template_ = {name: req.__name, view: req.__action};
+                context_={};
+            }
+
+            ///length==1
+            if (length === 1) if (typeof context === 'string') {
+                template_=context;
+                context_ = {};
+            } else if (context instanceof Function) {
+                callback_ = context;
+                template_ = {name: req.__name, view: req.__action};
+                context_ = {};
+            } else {
+                template_ = { name: req.__name, view: req.__action };
+                context_ = context;
+            }
+
+            ///length==2
+            if(length==2){
+                if(typeof context==='object'){
+                    context_=context;
+                    if(typeof template==='string' || template===null) template_=template;
+                    else if(template instanceof Function){
+                        callback_=template;
+                        template_ = { name: req.__name, view: req.__action };
+                    }else{
+                        params_=template;
+                        template_ = { name: req.__name, view: req.__action };
+                    }
+                } else {
+                    context_ = {};
+                    template_=context;
+                    if(template instanceof Function) callback_=template;
+                    else params_=template;
+                }
+            }
+
+            ///length==3
+            if (length == 3) {
+                if (typeof context === 'object') {
+                    context_ = context;
+                    if (typeof template === 'string' || template==null) {
+                        template_ = template;
+                        if (params instanceof Function) callback_ = params;
+                        else params_ = params;
+                    } else {
+                        template_ = { name: req.__name, view: req.__action };
+                        params_ = template;
+                        callback_ = params;
+                    }
+                } else {
+                    context_ = {};
+                    template_ = context;
+                    callback_ = params;
+                    params_ = template;
+                }
+            }
+
+            ///length==4
+            if(length===4){
+                template_=template;
+                context_ = context;
+                params_ = params;
+                callback_ = callback;
+            }
+
+            if(length > 4)throw "View render does not support more than 4 parameters";
+
+            ///if template has been set to null, reset it to the default controller name/action
+            if (!template_) template_ = { name: req.__name, view: req.__action };
+            else if(typeof template_==='string'){
+                var namespaceView=template_.split('.');
+                if(namespaceView.length ===2) template_ = { name: namespaceView[0], view: namespaceView[1] };
+                else if(namespaceView.length===1) template_ = { name: req.__name, view: template_ };
+            }
+            if (!callback_ instanceof Function) callback_ = null;
+            this.app.render(context_, template_,params_, req, callback_);
+        },
+
+        /**
+         * merge a context with req.session.context
+         * @param {object} context
+         * @public
+         */
+        setContext: function (context) {
+            var _ = utils._;
+            var req = this.req;
+            req.session = req.session || {};
+            Object.assign(req.session, context);
+        },
+
+        /**
+         * bind new instance of app.contextHelpers() to response
+         * @returns {object}
+         * @public
+         */
+        contextHelpers: function () {
+            var req = this.req;
+            var app = req.app;
+            return new app.contextHelpers();
+        },
+
+        /**
+         *
+         * @returns {{submitLabel: {css: string, cssDisplay: string, message: string}}}
+         * @public
+         */
+        formContext: function () {
+            return {
+                submitLabel: {
+                    css: "",
+                    cssDisplay: "",
+                    message: "&nbsp;"
+                }
+            }
+        },
+
+        /**
+         * convenience method to execute function or next() based on error object
+         * @param {object} err
+         * @param {function} next
+         * @param {function} fn
+         * @public
+         */
+        dispatch: function (err, next, fn) {
+            if (!err) fn.apply(this, arguments);
+            else next(err);
+        }
+
+
+    });
+
+    return Response;
+
+}));
+
 (function (root, factory) {
     if (typeof module !== 'undefined' && module.exports) {
         //commonjs
@@ -779,5 +1384,79 @@
         //app DI container
         container: Container
     }
+
+}));
+
+
+(function (root, factory) {
+    if (typeof module !== 'undefined' && module.exports) {
+        //commonjs
+        module.exports = factory(require('elliptical-utils'),require('elliptical-soa'),require('elliptical-location'),require('elliptical-event'),require('elliptical-middleware'),
+            require('elliptical-http'),require('elliptical-crypto'), require('./application'),require('./response'),require('./request'));
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(['elliptical-utils','elliptical-soa','elliptical-location','elliptical-event','elliptical-middleware', 'elliptical-http','elliptical-crypto','./application',
+            './response','./request'], factory);
+    } else {
+        //browser
+        root.elliptical.browser=factory(root.elliptical.utils,root.elliptical,root.elliptical.Location,root.elliptical.Event,root.elliptical.middleware,root.elliptical.http,
+            root.elliptical.crypto,root.elliptical.application,root.elliptical.Response,root.elliptical.Request);
+        root.returnExports = root.elliptical.browser;
+    }
+}(this, function (utils,soa,Location,Event,middleware,http,crypto,application,Response,Request) {
+
+
+
+    /* expose a try...catch  facade */
+    soa.Try=function(next,fn){
+        try{
+            fn.apply(this,arguments);
+        }catch(ex){
+            next(ex);
+        }
+    };
+
+
+    /**
+     * Expose createApplication().
+     */
+    var exports_ = createApplication;
+
+    exports_.Event=Event;
+    exports_.application=application;
+    exports_.Response=Response;
+    exports_.Request=Request;
+    exports_.http=http;
+    exports_.crypto = crypto;
+    exports_.Location=location.Location;
+
+
+    /**
+     * @return {Function}
+     * @public
+     */
+    function createApplication() {
+        /* create the browser app */
+        var app=function(){};
+
+        /* expose application object */
+        Object.assign(app, application);
+
+        /* init */
+        app.init();
+
+        return app;
+    }
+
+    /* expose elliptical middleware */
+    Object.assign(soa, middleware);
+
+    /* expose elliptical */
+    Object.assign(exports_, soa);
+
+    window.elliptical=exports_;
+    window.elliptical.$virtualRoot='/';
+
+    return exports_;
 
 }));

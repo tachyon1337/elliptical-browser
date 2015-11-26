@@ -1,54 +1,65 @@
+
 var gulp=require('gulp'),
-    gulputil=require('gulp-util'),
-    path=require('path'),
     fs = require('fs-extra'),
     concat=require('gulp-concat'),
     uglify = require('gulp-uglify'),
-    merge = require('merge-stream'),
-    build=require('./build.json'),
-    release=require('./build/dist.json'),
-    src='./src',
-    dist='./dist';
-
-
+    BUILD_JSON=require('./build.json'),
+    BUILD_NAME='elliptical.browser.js',
+    MIN_NAME='elliptical.browser.min.js',
+    REPO_NAME='elliptical browser',
+    BOWER='./bower_components',
+    BOWER_EC='./bower_components/elliptical-browser',
+    BOWER_EC_DIST='./bower_components/elliptical-browser/dist';
+    DIST='./dist';
 
 
 gulp.task('default',function(){
-    console.log('elliptical-browser build..."tasks: gulp build|minify"');
+    console.log(REPO_NAME + ' ..."tasks: gulp build|minify|demo"');
 });
 
 gulp.task('build',function(){
-
-    var build_=srcStream()
-        .pipe(concat('elliptical-browser.js'))
-        .pipe(gulp.dest(src));
-
-    var release_=releaseStream()
-        .pipe(concat('elliptical-browser.js'))
-        .pipe(gulp.dest(dist));
-
-    return merge(build_, release_);
-
+    concatStream(BUILD_NAME)
+        .pipe(gulp.dest(DIST));
 });
 
 gulp.task('minify',function(){
-
-    var build_=srcStream()
-        .pipe(concat('elliptical-browser.js'))
-        .pipe(gulp.dest(src));
-
-    var minify_=releaseStream()
-        .pipe(concat('elliptical-browser.min.js'))
+    concatStream(MIN_NAME)
         .pipe(uglify())
-        .pipe(gulp.dest(dist));
-
-    return merge(build_, minify_);
+        .pipe(gulp.dest(DIST));
 });
 
-function srcStream(){
-    return gulp.src(build);
+gulp.task('demo',function(){
+    fileStream('./elliptical-browser.html',BOWER_EC);
+    fileStream('./faker.html',BOWER_EC);
+    concatStream(BUILD_NAME)
+        .pipe(gulp.dest(BOWER_EC_DIST));
+});
+
+function srcStream(src){
+    if(src===undefined) src=BUILD_JSON;
+    return gulp.src(src);
 }
 
-function releaseStream(){
-    return gulp.src(release);
+function concatStream(name,src){
+    if(src===undefined) src=BUILD_JSON;
+    return srcStream(src)
+        .pipe(concat(name))
+}
+
+function fileStream(src,dest){
+    gulp.src(src)
+        .pipe(gulp.dest(dest));
+}
+
+function concatFileStream(src,dest,name){
+    gulp.src(src)
+        .pipe(concat(name))
+        .pipe(gulp.dest(dest));
+}
+
+function minFileStream(src,dest,name){
+    gulp.src(src)
+        .pipe(concat(name))
+        .pipe(uglify())
+        .pipe(gulp.dest(dest));
 }

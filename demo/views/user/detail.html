@@ -1,0 +1,23 @@
+<div class="flex space-between header">
+    <div class="flex center">
+        {#user}
+        <img src="{avatar}" class="avatar">
+        <h3 class="secondary name-margin">{firstName} {lastName}</h3>
+        {/user}
+    </div>
+    <a data-role="back"><span class="icon-arrow-back icon primary"></span></a>
+</div>
+<div class="flex-column">
+    {#user}
+    <label>Street</label>
+    <span>{street}</span>
+    <label>City</label>
+    <span>{city}</span>
+    <label>State</label>
+    <span>{state}</span>
+    <label>Zip Code</label>
+    <span>{zipCode}</span>
+    <label>Email</label>
+    <span>{email}</span>
+    {/user}
+</div>

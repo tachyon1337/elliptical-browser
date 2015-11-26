@@ -1,0 +1,45 @@
+{
+  "name": "elliptical-browser",
+  "description": "Browser Implementation of Node Express style apps",
+  "main": "dist/elliptical.browser.js",
+  "authors": [
+    "S. Francis"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "spa",
+    "routing",
+    "mvc",
+    "app",
+    "services"
+  ],
+  "homepage": "https://github.com/tachyon1337/elliptical-browser",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "elliptical-dust-helpers": "~1.0.5",
+    "elliptical-class": "~1.0.5",
+    "elliptical-event": "~1.0.1",
+    "elliptical-location": "~1.0.1",
+    "elliptical-crypto": "~1.0.2",
+    "elliptical-http": "~1.0.2",
+    "elliptical-soa": "~1.0.3",
+    "elliptical-middleware": "~1.0.2",
+    "elliptical-container": "~1.0.1",
+    "elliptical-document": "~1.0.3",
+    "elliptical-controller": "~1.0.2",
+    "elliptical-view": "~1.0.4",
+    "elliptical-transitions": "~1.0.3"
+  },
+  "devDependencies": {
+    "elliptical-generic-repository": "~1.0.1",
+    "faker": "Faker#~3.0.1",
+    "md-icons": "~1.0.4"
+  }
+}

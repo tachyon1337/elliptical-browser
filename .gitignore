@@ -35,6 +35,9 @@ nbproject
 #Node
 node_modules/
 
+#bower
+bower_components
+
 #Test
 test/
 
