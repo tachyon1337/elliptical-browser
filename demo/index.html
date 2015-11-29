@@ -11,9 +11,19 @@
 <link rel="import" href="bower_components/elliptical-browser/faker.html" property="body">
 <link rel="import" href="bower_components/elliptical-generic-repository/elliptical-generic-repository.html" property="body">
 <link rel="import" href="bower_components/md-icons/md-icons.html" property="body">
+<link rel="import" href="bower_components/sass-animations/fade.html" property="body">
 
-<header><h2>Demo</h2></header>
+<header>
+    <h2 class="pointer" ea-bind="home">Demo</h2>
+    <form method="post" action="/user/list/1" role="form">
+        <input type="text" name="name" placeholder="Search" id="search">
+        <button class="icon-search"></button>
+    </form>
+</header>
 <section content-placeholder></section>
+<footer>
+    <h4>Demo App</h4>
+</footer>
 <script src="demo/app.js"></script>
 </body>
 </html>

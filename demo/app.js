@@ -20,8 +20,11 @@ elliptical.module=(function(app){
         //http 404
         app.use(elliptical.http404());
 
+        //register service types
         var User=Service.extend({},{});
         container.registerType('User',User);
+        container.registerType('Try', elliptical.Try);
+        container.registerType('Location',elliptical.Location);
 
     });
 
@@ -60,6 +63,15 @@ elliptical.module=(function(app){
 
     var model=mockModel(20);
     var repo=new GenericRepository(model);
+
+    repo.query=function(filter,asEnumerable){
+        filter=filter.toLowerCase();
+        var result=this.Enumerable().Where(function(x){
+            return ((x.firstName.toLowerCase().indexOf(filter)==0) || (x.lastName.toLowerCase().indexOf(filter)==0));
+        });
+        return (asEnumerable) ? result : result.ToArray();
+    };
+
     container.mapType('User', repo);
 
     return app;
@@ -68,9 +80,9 @@ elliptical.module=(function(app){
 ///Controllers
 //Home
 elliptical.module=(function(app){
-    var Controller=new elliptical.Controller(app,'home');
+    var controller=new elliptical.Controller(app,'home');
 
-    Controller('/@action', {
+    controller('/@action', {
         Index:function(req,res,next){
             res.render(res.context);
         }
@@ -82,10 +94,11 @@ elliptical.module=(function(app){
 //User
 elliptical.module=(function(app){
     var container=app.container;
-    var Controller=new elliptical.Controller(app,'user');
+    var controller=new elliptical.Controller(app,'user');
     var User=container.getType('User');
+    var Try=container.getType('Try');
 
-    Controller('/@action/:id', {
+    controller('/@action/:id', {
         List:function(req,res,next){
             User.get({},function(err,data){
                 res.context.users=data;
@@ -99,9 +112,57 @@ elliptical.module=(function(app){
                 res.context.user=data;
                 res.render(res.context);
             });
-            res.render(res.context);
-        }
+            res.render(res.context,{transition:'fadeInUp'});
+        },
 
+        Post:{
+            List:function(req,res,next){
+                var query=req.body.name;
+                if(query==='') {
+                    res.redirect('/user/list/1');
+                    return;
+                }
+                var user=new User();
+                Try(next,function(){
+                    user
+                        .filter(query)
+                        .get(function(err,data){
+                            res.dispatch(err,next,function(){
+                                res.context.users=data;
+                                res.context.search={};
+                                res.context.search.pattern=query;
+                                res.render(res.context);
+                            });
+                        });
+                });
+            }
+        }
+    });
+
+    return app;
+})(elliptical.module);
+
+//bindings
+elliptical.module=(function(app){
+    var container=app.container;
+
+    elliptical.binding('home',function(node){
+        var $node=$(node);
+        var Location=container.getType('Location');
+        this.event($node,this.click,onClick);
+
+        function onClick(){
+            Location.href='/';
+        }
+    });
+
+    return app;
+})(elliptical.module);
+
+elliptical.module=(function(app){
+
+    elliptical.binding('list',function(node){
+       $('#search').val('');
     });
 
     return app;

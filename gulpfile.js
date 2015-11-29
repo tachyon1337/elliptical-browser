@@ -31,6 +31,7 @@ gulp.task('minify',function(){
 gulp.task('demo',function(){
     fileStream('./elliptical-browser.html',BOWER_EC);
     fileStream('./faker.html',BOWER_EC);
+    fileStream('./demo/index.html','./');
     concatStream(BUILD_NAME)
         .pipe(gulp.dest(BOWER_EC_DIST));
 });

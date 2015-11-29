@@ -92,9 +92,11 @@
     var REQUEST_EVENT='OnDocumentRequest';
     var SUBMIT_EVENT='OnDocumentSubmit';
     var DOCUMENT=$(document);
+    var RUNNING=false;
 
-    return function submit(history){
-        if(history===undefined) history=false;
+    return function submit(){
+        if(RUNNING) return;
+        else RUNNING=true;
 
         //form must have role attribute to be captured
         DOCUMENT.on(EVENT, SELECTOR, onSubmit);
@@ -102,7 +104,8 @@
         function onSubmit(event) {
             event.stopPropagation();
             event.preventDefault();
-            var body = $(event.currentTarget).document();
+            var target=$(event.currentTarget);
+            var body = target.document(); //parse form to a javascript POJO
 
             //create data object
             var data = {
@@ -112,8 +115,8 @@
                 element: this
             };
 
-            if (history) DOCUMENT.trigger(REQUEST_EVENT, data);
-            else DOCUMENT.trigger(SUBMIT_EVENT, data);
+            DOCUMENT.trigger(REQUEST_EVENT, data);
+            DOCUMENT.trigger(SUBMIT_EVENT, data);
         }
 
     };
@@ -661,6 +664,7 @@
             this.utils = utils;
             this._defineProps();
             this.isHistory = false;
+            this.container=Container;
 
             var initStack = function (app) {
 
@@ -679,6 +683,10 @@
 
         },
 
+        /**
+         *
+         * @private
+         */
         _defineProps: function () {
             /* getters/setters props */
             this._debug = false;
@@ -736,12 +744,9 @@
             });
         },
 
-        Location: function (params) {
-            if (params.history) this._setLocationHistoryService();
-
-            return Location;
-        },
-
+        /**
+         * @public
+         */
         $setDefaultProviders: function () {
             //set the default Model provider
             var Service = soa.Service;
@@ -754,8 +759,8 @@
 
         /**
          * sets the environment (production or dev)
-         * @param env {String}
-         * @returns {String}
+         * @param {string} env
+         * @returns {string}
          * @public
          */
         setEnvironment: function (env) {
@@ -784,6 +789,10 @@
             }
         },
 
+        /**
+         *
+         * @returns {undefined}
+         */
         getPort: function () {
             return undefined;
         },
@@ -791,7 +800,7 @@
 
         /**
          * returns the environment(production or dev)
-         * @returns {String}
+         * @returns {string}
          * @public
          */
         getEnvironment: function () {
@@ -800,8 +809,8 @@
 
         /**
          * configure
-         * @param mode {String}
-         * @param fn {Function}
+         * @param {string} mode
+         * @param {function} fn
          * @public
          */
         configure: function (mode, fn) {
@@ -828,8 +837,8 @@
          *  **History Enabled Only**
          *
          * maps to Router.get
-         * @param route {String}
-         * @param callbacks {Function}
+         * @param {string} route
+         * @param {function} callbacks
          * @public
          */
         get: function (route, callbacks) {
@@ -841,8 +850,8 @@
          *  **History Enabled Only**
          *
          * maps to Router.post
-         * @param route {String}
-         * @param callbacks {Function}
+         * @param {string} route
+         * @param {function} callbacks
          * @public
          */
         post: function (route, callbacks) {
@@ -854,8 +863,8 @@
          *  **History Enabled Only**
          *
          * maps to Router.put
-         * @param route {String}
-         * @param callbacks {Function}
+         * @param {string} route
+         * @param {function} callbacks
          * @public
          */
         put: function (route, callbacks) {
@@ -867,8 +876,8 @@
          *  **History Enabled Only**
          *
          * maps to Router.delete
-         * @param route {String}
-         * @param callbacks {Function}
+         * @param {string} route
+         * @param {function} callbacks
          * @public
          */
 
@@ -880,7 +889,7 @@
         /**
          *  **History Enabled Only**
          *
-         * @returns {Object}
+         * @returns {object}
          * @public
          */
         contextHelpers: function () {
@@ -897,9 +906,7 @@
 
         /**
          *
-         *
          * context settings
-         * @returns void
          * @public
          */
         contextSettings: function () {
@@ -926,9 +933,8 @@
          *  **History Enabled Only**
          *
          * add an acl to a root path
-         * @param path {String}
-         * @param excludeArray {Array}
-         * @returns void
+         * @param {string} path
+         * @param {array} excludeArray
          * @public
          */
         location: function (path, excludeArray) {
@@ -951,8 +957,9 @@
 
         /**
          *
-         * @param url {String}
-         * @returns {String}
+         * @param {string} url
+         * @returns {string}
+         * @public
          */
         parseRoute: function (url) {
             return (this.hashTag) ? url_.hashTagFormat(url) : url;
@@ -961,8 +968,8 @@
 
         /**
          *  **History Enabled Only**
-         *
          *  subscriber to the Router dispatch emitted event
+         *  @public
          */
         onDispatchRequest: function () {
             var self = this;
@@ -984,11 +991,10 @@
          *   **History Enabled Only**
          *   One Exception: setting the rootPath
          *
-         * adds a function to the middleware stack
+         *   adds a function to the middleware stack
          *
-         * @param route {String}
-         * @param fn {Function}
-         * @returns void
+         * @param {string} route
+         * @param {function} fn
          * @public
          */
         use: function (route, fn) {
@@ -1031,9 +1037,8 @@
          *  **History Enabled Only**
          *
          *  dispatches the callbacks for a route
-         * @param route {String}
-         * @param handlers {Array}
-         * @returns void
+         * @param {string} route
+         * @param {array} handlers
          * @public
          */
         dispatch: function (route, handlers) {
@@ -1080,8 +1085,8 @@
 
             /**
              *
-             * @param route
-             * @returns {String}
+             * @param {string} route
+             * @returns {string}
              * @private
              */
             function _checkRoute(route) {
@@ -1094,9 +1099,9 @@
 
             /**
              * executes the middleware stack
-             * @param stack {Array}
-             * @param req {Object}
-             * @param res {Object}
+             * @param {array} stack
+             * @param {object} req
+             * @param {object} res
              * @private
              */
             function _callStack(stack, req, res) {
@@ -1144,7 +1149,8 @@
         /**
          * SERVER ONLY
          * server-side execution of a function
-         * @param fn {Function}
+         * @param {function} fn
+         * @public
          */
         server: function (fn) {
             //ignore
@@ -1153,7 +1159,8 @@
         /**
          * BROWSER ONLY
          * client-side execution of a function
-         * @param fn {Function}
+         * @param {function} fn
+         * @public
          */
         browser: function (fn) {
             fn.call(this);
@@ -1162,8 +1169,9 @@
         /**
          * SERVER ONLY
          * convenience method to set standard middleware,cookies and session
-         * @param params
-         * @param $provider
+         * @param {object} params
+         * @param {object} $provider
+         * @public
          */
         defaultMiddleware: function (params, $provider) {
             //ignore
@@ -1176,6 +1184,7 @@
          * @param {array} stack
          * @param {object} server
          * @param {function} fn
+         * @public
          */
         bootstrap: function (stack, server, fn) {
             //ignore
@@ -1184,75 +1193,93 @@
         /**
          * executes document listeners, if applicable, then executes user provided function
          * @param {boolean} history
-         * @param {boolean} formsHistory
          * @param {function} fn
+         * @public
          */
-        listen: function (history, formsHistory, fn) {
+        listen: function (history, fn) {
             var app_ = this;
-            var env = this.getEnvironment();
             var func = null;
             var length = arguments.length;
-            //support 0-3 params
-            if (length === 0) /* form actions */ submit();
-            if (length === 1)if (typeof history === 'function') {
-                func = history;
-                /* form actions */
-                submit();
-            } else {
-                if (history) start(false, false); //history for http get only, event capture for forms
-            }
-            if (length === 2)if (typeof formsHistory === 'function') {
-                func = formsHistory;
-                start(false, false);
-            } else {
-                if (history && formsHistory) start(true, false);//history for all http actions
-                else if (history) start(false, false); //history for http get only, event capture for forms
-            }
 
-            if (length === 3) {
+            //suport 0-2 params
+            if (length === 0) /* form actions */ submit();
+            if(length===1){
+                if(typeof history==='function') {
+                    func=history;
+                    submit();
+                }else this._start(history);
+            }
+            if(length===2){
                 func = fn;
-                if (history && formsHistory) start(true, false);//history for all http actions
-                else if (history) start(false, false); //history for http get only, event capture for forms
+                this._start(history);
             }
 
             if (func) {
                 $(function () {
                     setTimeout(function () {
                         func.call(app_);
-                    }, 500);
+                    }, CALLBACK_EXECUTION_DELAY);
                 });
             }
 
-            app_.start = function () {
-                start(false, true);
-            };
+        },
 
-            function start(formHistory, ignoreSubmit) {
-                //form actions
-                if (!ignoreSubmit) submit(formHistory);
-                app_.isHistory = true;
+        /**
+         * @public
+         */
+        start:function(){
+            this._start(true);
+        },
 
-                //http get requests
-                request();
+        /**
+         *
+         * @param {boolean} history
+         * @private
+         */
+        _start:function(history){
+            //if false is passed as the param, oblige the request, start submit only, then exit
+            if(!history){
+                submit();
+                return;
+            }
 
-                /* subscribe to the router dispatch event */
-                app_.onDispatchRequest();
-                /* replace Location redirect,reload functions */
-                app_._setLocationHistoryService();
+            ////----start history----------------------------
+            var app_ = this;
+            var env = this.getEnvironment();
 
-                if (env === PRODUCTION) Router.debug = false;
-                Router.start();
+            //set the private flag
+            this.isHistory = true;
 
-                //setup convenient callback for history that allows for DI
-                app_.history = function (fn) {
-                    document.addEventListener(DOCUMENT_HISTORY, function (event) {
-                        var data = event.detail;
-                        fn.call(app_, data, app_.container);
-                    });
-                }
+            //form actions
+            submit();
+
+            //http get requests
+            request();
+
+            /* subscribe to the router dispatch event */
+            this.onDispatchRequest();
+
+            /* overrride Location.redirect,Location.reload */
+            this._setLocationHistoryService();
+
+            ///start Router
+            if (env === PRODUCTION) Router.debug = false;
+            Router.start();
+
+            //setup convenient callback for history that allows for DI
+            app_.history = function (fn) {
+                document.addEventListener(DOCUMENT_HISTORY, function (event) {
+                    var data = event.detail;
+                    fn.call(app_, data, app_.container);
+                });
             }
         },
 
+
+        /**
+         *
+         * @private
+         */
         _setLocationHistoryService: function () {
             this.history = true;
             Location.redirect = function (route) {
@@ -1379,10 +1406,7 @@
                 }
                 return context;
             }
-        },
-
-        //app DI container
-        container: Container
+        }
     }
 
 }));
